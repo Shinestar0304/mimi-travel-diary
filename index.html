@@ -1,0 +1,3145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>咪咪的旅行日记</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+
+        :root {
+            --primary: #6ECCAF;
+            --primary-light: #A8E6CF;
+            --primary-dark: #4DA88A;
+            --accent: #FFD93D;
+            --bg: #F0F7F4;
+            --card: #FFFFFF;
+            --text: #2D3436;
+            --text-light: #636E72;
+            --border: #E0ECE8;
+            --shadow: 0 4px 20px rgba(0,0,0,0.08);
+            --shadow-hover: 0 8px 30px rgba(0,0,0,0.12);
+            --danger: #FF6B6B;
+            --warning: #FFA502;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .bg-decoration {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-decoration::before {
+            content: '';
+            position: absolute;
+            top: -50%; right: -20%;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(168,230,207,0.3) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .bg-decoration::after {
+            content: '';
+            position: absolute;
+            bottom: -30%; left: -10%;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(255,217,61,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .floating-shape {
+            position: absolute;
+            opacity: 0.06;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .shape-1 { top: 10%; left: 5%; width: 60px; height: 60px; background: var(--primary); border-radius: 50%; animation-delay: 0s; }
+        .shape-2 { top: 60%; right: 8%; width: 40px; height: 40px; background: var(--accent); border-radius: 12px; animation-delay: -5s; }
+        .shape-3 { bottom: 20%; left: 15%; width: 80px; height: 80px; background: var(--primary-dark); border-radius: 50%; animation-delay: -10s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            33% { transform: translateY(-20px) rotate(5deg); }
+            66% { transform: translateY(10px) rotate(-5deg); }
+        }
+
+        .app-container {
+            position: relative;
+            z-index: 1;
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-title {
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 20px;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .header-stats {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            background: var(--bg);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 16px 20px;
+            overflow-y: auto;
+        }
+
+        .room-scene {
+            background: var(--card);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+            min-height: 320px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .room-bg {
+            position: absolute;
+            inset: 0;
+            border-radius: 24px;
+            opacity: 0.15;
+            transition: all 0.5s;
+        }
+
+        .room-bg.default { background: linear-gradient(135deg, #A8E6CF 0%, #DCEDC1 100%); }
+        .room-bg.starry { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .room-bg.candy { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .room-bg.forest { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+
+        .cat-container {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .cat-emoji {
+            font-size: 100px;
+            line-height: 1;
+            display: inline-block;
+            animation: cat-idle 3s ease-in-out infinite;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+        }
+
+        @keyframes cat-idle {
+            0%, 100% { transform: translateY(0) scale(1); }
+            25% { transform: translateY(-5px) scale(1.02); }
+            50% { transform: translateY(0) scale(1); }
+            75% { transform: translateY(-3px) scale(1.01); }
+        }
+
+        .cat-traveling {
+            animation: cat-travel 2s ease-in-out infinite;
+        }
+
+        @keyframes cat-travel {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            25% { transform: translateX(10px) rotate(5deg); }
+            75% { transform: translateX(-10px) rotate(-5deg); }
+        }
+
+        .cat-status {
+            margin-top: 16px;
+            font-size: 14px;
+            color: var(--text-light);
+            background: rgba(255,255,255,0.9);
+            padding: 8px 20px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .travel-progress {
+            width: 200px;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            margin: 12px auto 0;
+            overflow: hidden;
+        }
+
+        .travel-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            border-radius: 3px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        .travel-timer {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 8px;
+        }
+
+        .room-furniture {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            right: 16px;
+            display: flex;
+            justify-content: space-around;
+            z-index: 2;
+        }
+
+        .furniture-item {
+            font-size: 28px;
+            opacity: 0.7;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .furniture-item:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .action-btn {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 16px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
+        }
+
+        .action-btn .btn-icon {
+            font-size: 32px;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .action-btn .btn-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .action-btn .badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #FF6B6B;
+            color: white;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: var(--card);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 420px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 24px;
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.3s;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 22px;
+            color: var(--primary-dark);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-light);
+            padding: 4px;
+            line-height: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 24px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(110,204,175,0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text);
+            border: 2px solid var(--border);
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            background: white;
+        }
+
+        .settings-section {
+            margin-bottom: 20px;
+        }
+
+        .settings-section h3 {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .toggle-switch {
+            width: 48px;
+            height: 26px;
+            background: var(--border);
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: var(--primary);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(22px);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s;
+            background: var(--bg);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(45,52,54,0.9);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            z-index: 2000;
+            opacity: 0;
+            transition: all 0.3s;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .slide-up {
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .pop-anim {
+            animation: pop 0.3s ease-out;
+        }
+
+        /* ===== 鱼塘样式 ===== */
+        .pond-container {
+            background: linear-gradient(180deg, #E3F2FD 0%, #BBDEFB 100%);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+            min-height: 200px;
+        }
+
+        .pond-container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 40px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.6) 0%, transparent 100%);
+            border-radius: 24px 24px 0 0;
+        }
+
+        .pond-title {
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 18px;
+            color: #1976D2;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pond-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .pond-slot {
+            aspect-ratio: 1;
+            background: rgba(255,255,255,0.6);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pond-slot:hover {
+            border-color: #1976D2;
+            transform: scale(1.05);
+        }
+
+        .pond-slot.empty {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .pond-slot.empty::before {
+            content: '+';
+            font-size: 24px;
+            color: rgba(25,118,210,0.4);
+        }
+
+        .pond-slot .fish-emoji {
+            font-size: 32px;
+            animation: fish-float 2s ease-in-out infinite;
+        }
+
+        @keyframes fish-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        .pond-slot .fish-timer {
+            position: absolute;
+            bottom: 4px;
+            font-size: 10px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 8px;
+        }
+
+        .pond-slot.ready {
+            animation: pond-glow 1.5s ease-in-out infinite;
+            border-color: var(--accent);
+        }
+
+        @keyframes pond-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(255,217,61,0.3); }
+            50% { box-shadow: 0 0 15px rgba(255,217,61,0.6); }
+        }
+
+        .pond-slot.ready .fish-emoji {
+            animation: fish-jump 0.8s ease-in-out infinite;
+        }
+
+        @keyframes fish-jump {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(10deg); }
+        }
+
+        .pond-capacity {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 12px;
+            color: #1976D2;
+        }
+
+        /* ===== 小游戏样式 ===== */
+        .minigame-container {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .minigame-title {
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .minigame-subtitle {
+            color: var(--text-light);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .minigame-score {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin: 20px 0;
+        }
+
+        .minigame-timer {
+            font-size: 20px;
+            color: var(--warning);
+            margin-bottom: 16px;
+        }
+
+        /* 记忆翻牌 */
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            max-width: 280px;
+            margin: 0 auto;
+        }
+
+        .memory-card {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .memory-card:hover {
+            transform: scale(1.05);
+            border-color: var(--primary-dark);
+        }
+
+        .memory-card.flipped {
+            background: white;
+            border-color: var(--primary);
+        }
+
+        .memory-card.matched {
+            background: var(--accent);
+            border-color: var(--accent);
+            animation: pop 0.3s ease-out;
+        }
+
+        /* 找不同 */
+        .spotdiff-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .spotdiff-img {
+            width: 140px;
+            height: 140px;
+            border-radius: 16px;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            position: relative;
+            cursor: pointer;
+            border: 3px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .spotdiff-img:hover {
+            border-color: var(--primary);
+        }
+
+        .spotdiff-diff {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(255,107,107,0.3);
+            border: 2px solid var(--danger);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .spotdiff-diff:hover {
+            background: rgba(255,107,107,0.6);
+            transform: scale(1.2);
+        }
+
+        .spotdiff-diff.found {
+            background: rgba(110,204,175,0.6);
+            border-color: var(--primary);
+            animation: pop 0.3s ease-out;
+        }
+
+        /* 节奏点击 */
+        .rhythm-game {
+            position: relative;
+            height: 300px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 0 auto;
+            max-width: 300px;
+        }
+
+        .rhythm-lane {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: 3px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .rhythm-lane.active {
+            background: rgba(110,204,175,0.3);
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(110,204,175,0.5);
+        }
+
+        .rhythm-note {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            animation: rhythm-fall linear;
+        }
+
+        @keyframes rhythm-fall {
+            from { top: -40px; }
+            to { top: 260px; }
+        }
+
+        .rhythm-hit {
+            position: absolute;
+            font-size: 24px;
+            font-weight: 700;
+            animation: hit-float 0.8s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes hit-float {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+        }
+
+        /* 拼图 */
+        .puzzle-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            max-width: 240px;
+            margin: 0 auto;
+            background: var(--border);
+            padding: 4px;
+            border-radius: 12px;
+        }
+
+        .puzzle-piece {
+            aspect-ratio: 1;
+            background: var(--primary-light);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .puzzle-piece:hover {
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .puzzle-piece.selected {
+            border-color: var(--accent);
+            background: var(--accent);
+        }
+
+        .puzzle-piece.correct {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* 日记样式 */
+        .diary-entry {
+            background: linear-gradient(135deg, #FFF8E1 0%, #FFFDE7 100%);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 2px solid #FFE082;
+            position: relative;
+        }
+
+        .diary-entry::before {
+            content: '📖';
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            font-size: 24px;
+            background: white;
+            padding: 0 8px;
+            border-radius: 50%;
+        }
+
+        .diary-date {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            margin-top: 8px;
+        }
+
+        .diary-content {
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--text);
+            margin-bottom: 16px;
+        }
+
+        .diary-choices {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .diary-choice {
+            background: white;
+            border: 2px solid #FFE082;
+            border-radius: 16px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .diary-choice:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            transform: translateX(4px);
+        }
+
+        .diary-stats {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px dashed #FFE082;
+        }
+
+        .diary-stat {
+            flex: 1;
+            text-align: center;
+        }
+
+        .diary-stat .stat-label {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-bottom: 4px;
+        }
+
+        .diary-stat .stat-bar {
+            height: 6px;
+            background: #E0E0E0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .diary-stat .stat-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s;
+        }
+
+        .diary-stat .stat-value {
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        /* 奖励弹窗 */
+        .reward-container {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .reward-stars {
+            font-size: 40px;
+            margin-bottom: 16px;
+        }
+
+        .reward-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .reward-item {
+            background: var(--bg);
+            border-radius: 16px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+        }
+
+        .reward-item .reward-icon {
+            font-size: 28px;
+        }
+
+        /* 任务系统 */
+        .quest-item {
+            background: var(--bg);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s;
+        }
+
+        .quest-item:hover {
+            background: var(--primary-light);
+        }
+
+        .quest-item.completed {
+            opacity: 0.6;
+        }
+
+        .quest-icon {
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+
+        .quest-info {
+            flex: 1;
+        }
+
+        .quest-title {
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .quest-desc {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .quest-progress {
+            font-size: 12px;
+            color: var(--primary-dark);
+            font-weight: 700;
+        }
+
+        .quest-reward {
+            font-size: 12px;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        /* 成就 */
+        .achievement-item {
+            background: var(--bg);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .achievement-item.locked {
+            opacity: 0.5;
+        }
+
+        .achievement-icon {
+            font-size: 36px;
+            flex-shrink: 0;
+        }
+
+        .achievement-info {
+            flex: 1;
+        }
+
+        .achievement-title {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .achievement-desc {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        /* 背包 */
+        .backpack-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 16px 0;
+        }
+
+        .backpack-slot {
+            aspect-ratio: 1;
+            background: var(--bg);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .backpack-slot:hover {
+            border-color: var(--primary);
+            background: white;
+        }
+
+        .backpack-slot .item-count {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            background: var(--primary);
+            color: white;
+            font-size: 11px;
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-weight: 700;
+        }
+
+        .backpack-slot .item-name {
+            font-size: 10px;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+
+        /* 地点选择 */
+        .location-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .location-card {
+            background: var(--bg);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .location-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .location-card .loc-icon {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+
+        .location-card .loc-name {
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .location-card .loc-desc {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        /* 明信片 */
+        .postcard-item {
+            background: var(--bg);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .postcard-item:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow);
+        }
+
+        .postcard-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            flex-shrink: 0;
+        }
+
+        .postcard-info h4 {
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .postcard-info p {
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        /* 好友来访 */
+        .friend-visit {
+            background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            text-align: center;
+            animation: friend-appear 0.5s ease-out;
+            border: 2px solid #F9A825;
+        }
+
+        @keyframes friend-appear {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .friend-visit .friend-icon {
+            font-size: 60px;
+            margin-bottom: 8px;
+        }
+
+        .friend-visit .friend-name {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .friend-visit .friend-gift {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-bottom: 12px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 400px) {
+            .action-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+            .action-btn {
+                padding: 12px 4px;
+            }
+            .action-btn .btn-icon {
+                font-size: 24px;
+            }
+            .action-btn .btn-label {
+                font-size: 11px;
+            }
+            .pond-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-light);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-decoration">
+        <div class="floating-shape shape-1"></div>
+        <div class="floating-shape shape-2"></div>
+        <div class="floating-shape shape-3"></div>
+    </div>
+
+    <div class="app-container">
+        <header class="header">
+            <div class="header-title">
+                <span>🐱</span>
+                <span id="header-cat-name">咪咪</span>
+            </div>
+            <div class="header-stats">
+                <div class="stat-item">
+                    <span class="stat-icon">🐟</span>
+                    <span id="fish-count">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">⭐</span>
+                    <span id="level-display">Lv.1</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content" id="main-content"></main>
+    </div>
+
+    <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content" id="modal-content" onclick="event.stopPropagation()"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+
+        // ============================================
+        // 音效系统 (Web Audio API)
+        // ============================================
+        const AudioSys = {
+            ctx: null,
+            enabled: true,
+
+            init() {
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            },
+
+            play(type) {
+                if (!this.enabled || !this.ctx) return;
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                const now = this.ctx.currentTime;
+
+                switch(type) {
+                    case 'click':
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(800, now);
+                        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.05);
+                        gain.gain.setValueAtTime(0.15, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                        osc.start(now); osc.stop(now + 0.1);
+                        break;
+                    case 'harvest':
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(523, now);
+                        osc.frequency.setValueAtTime(659, now + 0.1);
+                        osc.frequency.setValueAtTime(784, now + 0.2);
+                        gain.gain.setValueAtTime(0.15, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                        osc.start(now); osc.stop(now + 0.4);
+                        break;
+                    case 'travel':
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(440, now);
+                        osc.frequency.linearRampToValueAtTime(880, now + 0.3);
+                        gain.gain.setValueAtTime(0.1, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                        osc.start(now); osc.stop(now + 0.5);
+                        break;
+                    case 'return':
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(784, now);
+                        osc.frequency.setValueAtTime(659, now + 0.15);
+                        osc.frequency.setValueAtTime(523, now + 0.3);
+                        gain.gain.setValueAtTime(0.15, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                        osc.start(now); osc.stop(now + 0.5);
+                        break;
+                    case 'friend':
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(600, now);
+                        osc.frequency.setValueAtTime(750, now + 0.1);
+                        osc.frequency.setValueAtTime(900, now + 0.2);
+                        gain.gain.setValueAtTime(0.12, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                        osc.start(now); osc.stop(now + 0.4);
+                        break;
+                    case 'error':
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(200, now);
+                        gain.gain.setValueAtTime(0.08, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                        osc.start(now); osc.stop(now + 0.15);
+                        break;
+                    case 'match':
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(880, now);
+                        osc.frequency.setValueAtTime(1100, now + 0.1);
+                        gain.gain.setValueAtTime(0.12, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                        osc.start(now); osc.stop(now + 0.2);
+                        break;
+                    case 'combo':
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(1100, now);
+                        osc.frequency.setValueAtTime(1320, now + 0.08);
+                        osc.frequency.setValueAtTime(1568, now + 0.16);
+                        gain.gain.setValueAtTime(0.15, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                        osc.start(now); osc.stop(now + 0.3);
+                        break;
+                    case 'rhythm-hit':
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(1000, now);
+                        gain.gain.setValueAtTime(0.1, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                        osc.start(now); osc.stop(now + 0.08);
+                        break;
+                    case 'rhythm-miss':
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(150, now);
+                        gain.gain.setValueAtTime(0.06, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                        osc.start(now); osc.stop(now + 0.1);
+                        break;
+                }
+            }
+        };
+
+        // ============================================
+        // 游戏数据
+        // ============================================
+        const LOCATIONS = [
+            { id: 'cloud', name: '云朵国', icon: '☁️', desc: '棉花糖般的云朵城堡', color: '#A8D8EA', items: ['云朵糖', '彩虹碎片', '羽毛笔'] },
+            { id: 'candy', name: '糖果镇', icon: '🍬', desc: '巧克力河与饼干屋', color: '#FFB6B9', items: ['棒棒糖', '蜂蜜罐', '姜饼人'] },
+            { id: 'starry', name: '星空岛', icon: '🌙', desc: '银河与流星划过', color: '#AA96DA', items: ['星尘瓶', '月光石', '彗星尾'] },
+            { id: 'sakura', name: '樱花谷', icon: '🌸', desc: '粉色花瓣雨的仙境', color: '#FCBAD3', items: ['樱花饼', '花见团子', '风铃'] },
+            { id: 'ice', name: '冰晶城', icon: '❄️', desc: '极光下的冰雕宫殿', color: '#A6E4E7', items: ['冰晶花', '雪绒球', '极光丝带'] },
+            { id: 'firefly', name: '萤火森', icon: '✨', desc: '发光蘑菇与萤火虫', color: '#CCEABB', items: ['萤火灯笼', '夜光菇', '精灵尘'] }
+        ];
+
+        const FRIENDS = [
+            { id: 'snail', name: '慢慢', icon: '🐌', gift: '三叶草', giftAmount: 3 },
+            { id: 'bee', name: '嗡嗡', icon: '🐝', gift: '蜂蜜', giftAmount: 1 },
+            { id: 'butterfly', name: '彩彩', icon: '🦋', gift: '花粉', giftAmount: 2 },
+            { id: 'bird', name: '啾啾', icon: '🐦', gift: '羽毛', giftAmount: 1 }
+        ];
+
+        const FOODS = [
+            { id: 'grass', name: '幸运草', icon: '🌿', price: 0, travelTime: 15, desc: '后院自产' },
+            { id: 'biscuit', name: '小鱼饼干', icon: '🍪', price: 10, travelTime: 20, desc: '普通口粮' },
+            { id: 'can', name: '罐头', icon: '🥫', price: 25, travelTime: 30, desc: '美味大餐' },
+            { id: 'cake', name: '猫咪蛋糕', icon: '🍰', price: 50, travelTime: 45, desc: '豪华盛宴' },
+            { id: 'starfood', name: '星星糖', icon: '⭐', price: 80, travelTime: 60, desc: '魔法食物' }
+        ];
+
+        const FISH_TYPES = [
+            { id: 'goldfish', name: '小金鱼', icon: '🐠', growTime: 10, minYield: 2, maxYield: 3, price: 0, escapeRate: 0 },
+            { id: 'puffer', name: '河豚', icon: '🐡', growTime: 20, minYield: 5, maxYield: 7, price: 5, escapeRate: 0.05 },
+            { id: 'shark', name: '小鲨鱼', icon: '🦈', growTime: 30, minYield: 8, maxYield: 12, price: 15, escapeRate: 0.15 },
+            { id: 'octopus', name: '章鱼', icon: '🐙', growTime: 45, minYield: 12, maxYield: 16, price: 30, escapeRate: 0.1 },
+            { id: 'whale', name: '鲸鱼宝宝', icon: '🐋', growTime: 60, minYield: 20, maxYield: 25, price: 60, escapeRate: 0.2 }
+        ];
+
+        const FURNITURE_SETS = [
+            { id: 'default', name: '田园风', icon: '🌿', bed: '🛏️', window: '🪟', table: '🪑', closet: '🚪', price: 0 },
+            { id: 'starry', name: '星空风', icon: '🌙', bed: '🛸', window: '🌌', table: '🔭', closet: '🚀', price: 100 },
+            { id: 'candy', name: '糖果风', icon: '🍭', bed: '🍦', window: '🍩', table: '🧁', closet: '🎂', price: 150 },
+            { id: 'forest', name: '森林风', icon: '🌲', bed: '🍄', window: '🦉', table: '🪵', closet: '🌳', price: 200 }
+        ];
+
+        const WALLPAPERS = [
+            { id: 'default', name: '晨雾绿', color: 'default', price: 0 },
+            { id: 'starry', name: '星空紫', color: 'starry', price: 50 },
+            { id: 'candy', name: '糖果粉', color: 'candy', price: 50 },
+            { id: 'forest', name: '森林青', color: 'forest', price: 50 }
+        ];
+
+        const MINIGAMES = ['memory', 'spotdiff', 'rhythm', 'puzzle'];
+
+        const QUESTS = [
+            { id: 'first_travel', title: '初次旅行', desc: '完成第一次旅行', target: 1, reward: 20, type: 'travel_count' },
+            { id: 'harvest_fish', title: '捕鱼达人', desc: '收获鱼10次', target: 10, reward: 15, type: 'harvest_count' },
+            { id: 'collect_postcards', title: '明信片收藏家', desc: '收集5张明信片', target: 5, reward: 30, type: 'postcard_count' },
+            { id: 'meet_friends', title: '社交达人', desc: '接待好友5次', target: 5, reward: 20, type: 'friend_count' },
+            { id: 'buy_furniture', title: '装修大师', desc: '购买3件家具', target: 3, reward: 25, type: 'furniture_count' },
+            { id: 'level_up', title: '成长之路', desc: '升到5级', target: 5, reward: 50, type: 'level' },
+            { id: 'rich', title: '小富翁', desc: '拥有100小鱼干', target: 100, reward: 30, type: 'fish_amount' },
+            { id: 'minigame_master', title: '游戏高手', desc: '小游戏获得完美评价3次', target: 3, reward: 40, type: 'perfect_minigame' }
+        ];
+
+        const ACHIEVEMENTS = [
+            { id: 'first_step', title: '第一步', desc: '完成第一次旅行', icon: '🐾' },
+            { id: 'fisherman', title: '渔夫', desc: '收获鱼50次', icon: '🎣' },
+            { id: 'traveler', title: '旅行家', desc: '去过所有6个地点', icon: '🗺️' },
+            { id: 'collector', title: '收藏家', desc: '收集全部18种特产', icon: '🏆' },
+            { id: 'popular', title: '人气王', desc: '接待所有好友', icon: '👑' },
+            { id: 'decorator', title: '设计师', desc: '解锁所有家具风格', icon: '🎨' },
+            { id: 'millionaire', title: '百万富翁', desc: '拥有500小鱼干', icon: '💰' },
+            { id: 'master', title: '大师', desc: '升到10级', icon: '⭐' }
+        ];
+
+        // ============================================
+        // 游戏状态
+        // ============================================
+        let game = {
+            catName: '咪咪',
+            fish: 20,
+            level: 1,
+            exp: 0,
+            pond: Array(6).fill(null),
+            pondCapacity: 6,
+            backpack: { grass: 5, biscuit: 2, can: 0, cake: 0, starfood: 0 },
+            postcards: [],
+            souvenirs: {},
+            furniture: { set: 'default', wallpaper: 'default' },
+            isTraveling: false,
+            travelEndTime: 0,
+            travelLocation: null,
+            travelFood: null,
+            currentFriend: null,
+            soundEnabled: true,
+            firstVisit: true,
+            personality: { brave: 50, greedy: 50, lively: 50, lazy: 50 },
+            diaries: [],
+            quests: {},
+            achievements: {},
+            stats: { travelCount: 0, harvestCount: 0, friendCount: 0, furnitureCount: 0, perfectMinigame: 0 },
+            lastDiaryDate: null
+        };
+
+        function initQuests() {
+            QUESTS.forEach(q => {
+                if (!game.quests[q.id]) {
+                    game.quests[q.id] = { progress: 0, completed: false };
+                }
+            });
+        }
+
+        function initAchievements() {
+            ACHIEVEMENTS.forEach(a => {
+                if (!game.achievements[a.id]) {
+                    game.achievements[a.id] = false;
+                }
+            });
+        }
+
+        // ============================================
+        // 存档系统
+        // ============================================
+        function saveGame() {
+            localStorage.setItem('catTravelGame_v2', JSON.stringify(game));
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('catTravelGame_v2');
+            if (saved) {
+                game = JSON.parse(saved);
+                if (game.isTraveling && Date.now() >= game.travelEndTime) {
+                    completeTravel();
+                }
+                game.pond.forEach((slot, i) => {
+                    if (slot && Date.now() >= slot.readyTime) {
+                        slot.ready = true;
+                    }
+                });
+            }
+            initQuests();
+            initAchievements();
+        }
+
+        // ============================================
+        // 工具函数
+        // ============================================
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function playSound(type) {
+            if (game.soundEnabled) AudioSys.play(type);
+        }
+
+        function openModal(content) {
+            document.getElementById('modal-content').innerHTML = content;
+            document.getElementById('modal-overlay').classList.add('active');
+            playSound('click');
+        }
+
+        function closeModal(e) {
+            if (!e || e.target.id === 'modal-overlay') {
+                document.getElementById('modal-overlay').classList.remove('active');
+                if (window.minigameInterval) {
+                    clearInterval(window.minigameInterval);
+                    window.minigameInterval = null;
+                }
+                if (window.minigameTimeout) {
+                    clearTimeout(window.minigameTimeout);
+                    window.minigameTimeout = null;
+                }
+            }
+        }
+
+        function getRandom(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function formatTime(ms) {
+            const sec = Math.ceil(ms / 1000);
+            if (sec < 60) return sec + '秒';
+            const min = Math.floor(sec / 60);
+            const s = sec % 60;
+            return min + '分' + (s > 0 ? s + '秒' : '');
+        }
+
+        function randInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        // ============================================
+        // 任务系统
+        // ============================================
+        function checkQuest(type, value) {
+            let updated = false;
+            QUESTS.forEach(q => {
+                const quest = game.quests[q.id];
+                if (quest && !quest.completed && q.type === type) {
+                    if (type === 'fish_amount') {
+                        if (game.fish >= q.target) quest.progress = q.target;
+                    } else if (type === 'level') {
+                        if (game.level >= q.target) quest.progress = q.target;
+                    } else {
+                        quest.progress = Math.min(quest.progress + (value || 1), q.target);
+                    }
+
+                    if (quest.progress >= q.target) {
+                        quest.completed = true;
+                        game.fish += q.reward;
+                        showToast('任务完成：' + q.title + ' +' + q.reward + '🐟');
+                        playSound('harvest');
+                        updated = true;
+                    }
+                }
+            });
+            if (updated) saveGame();
+        }
+
+        function checkAchievement(id) {
+            if (!game.achievements[id]) {
+                game.achievements[id] = true;
+                showToast('解锁成就！');
+                playSound('combo');
+                saveGame();
+            }
+        }
+
+        // ============================================
+        // 主界面渲染
+        // ============================================
+        function renderHome() {
+            const main = document.getElementById('main-content');
+            const furniture = FURNITURE_SETS.find(f => f.id === game.furniture.set);
+            const wallpaper = WALLPAPERS.find(w => w.id === game.furniture.wallpaper);
+
+            let catEmoji = '🐱';
+            let catStatus = '在家休息';
+            let catAnimClass = '';
+
+            if (game.isTraveling) {
+                catEmoji = '🎒';
+                catStatus = '旅行中...';
+                catAnimClass = 'cat-traveling';
+            } else if (game.currentFriend) {
+                catStatus = '和' + game.currentFriend.name + '玩耍';
+            }
+
+            if (!game.isTraveling && !game.currentFriend && Math.random() < 0.3) {
+                spawnFriend();
+            }
+
+            let html = `
+                <div class="room-scene slide-up">
+                    <div class="room-bg ${wallpaper.color}"></div>
+
+                    ${game.currentFriend ? `
+                        <div class="friend-visit" style="position:absolute;top:12px;left:12px;right:12px;z-index:10;">
+                            <div class="friend-icon">${game.currentFriend.icon}</div>
+                            <div class="friend-name">${game.currentFriend.name} 来访</div>
+                            <div class="friend-gift">带来了 ${game.currentFriend.giftAmount} 个${game.currentFriend.gift}</div>
+                            <button class="btn-primary" onclick="receiveFriendGift()">收下礼物</button>
+                        </div>
+                    ` : ''}
+
+                    <div class="cat-container">
+                        <div class="cat-emoji ${catAnimClass}">${catEmoji}</div>
+                        <div class="cat-status">${catStatus}</div>
+
+                        ${game.isTraveling ? `
+                            <div class="travel-progress">
+                                <div class="travel-progress-bar" id="travel-bar"></div>
+                            </div>
+                            <div class="travel-timer" id="travel-timer">计算中...</div>
+                        ` : ''}
+                    </div>
+
+                    <div class="room-furniture">
+                        <div class="furniture-item" title="床" onclick="showFurnitureShop()">${furniture.bed}</div>
+                        <div class="furniture-item" title="窗户" onclick="showFurnitureShop()">${furniture.window}</div>
+                        <div class="furniture-item" title="桌子" onclick="showFurnitureShop()">${furniture.table}</div>
+                        <div class="furniture-item" title="衣柜" onclick="showFurnitureShop()">${furniture.closet}</div>
+                    </div>
+                </div>
+
+                <div class="action-grid slide-up" style="animation-delay:0.1s">
+                    <div class="action-btn" onclick="showPond()">
+                        <span class="btn-icon">🐟</span>
+                        <span class="btn-label">鱼塘</span>
+                        ${game.pond.some(s => s && s.ready) ? '<span class="badge">!</span>' : ''}
+                    </div>
+                    <div class="action-btn" onclick="showBackpack()">
+                        <span class="btn-icon">🎒</span>
+                        <span class="btn-label">背包</span>
+                    </div>
+                    <div class="action-btn" onclick="showTravel()">
+                        <span class="btn-icon">✈️</span>
+                        <span class="btn-label">旅行</span>
+                        ${game.isTraveling ? '<span class="badge">!</span>' : ''}
+                    </div>
+                    <div class="action-btn" onclick="showPostcards()">
+                        <span class="btn-icon">📮</span>
+                        <span class="btn-label">明信片</span>
+                        ${game.postcards.length > 0 ? '<span class="badge">'+game.postcards.length+'</span>' : ''}
+                    </div>
+                    <div class="action-btn" onclick="showDiary()">
+                        <span class="btn-icon">📖</span>
+                        <span class="btn-label">日记</span>
+                        ${game.diaries.length > 0 && !game.diaries[0].replied ? '<span class="badge">!</span>' : ''}
+                    </div>
+                    <div class="action-btn" onclick="showQuests()">
+                        <span class="btn-icon">🎯</span>
+                        <span class="btn-label">任务</span>
+                        ${Object.values(game.quests).some(q => q && q.completed && !q.claimed) ? '<span class="badge">!</span>' : ''}
+                    </div>
+                </div>
+            `;
+
+            main.innerHTML = html;
+
+            if (game.isTraveling) {
+                updateTravelProgress();
+            }
+
+            document.getElementById('header-cat-name').textContent = game.catName;
+            document.getElementById('fish-count').textContent = game.fish;
+            document.getElementById('level-display').textContent = 'Lv.' + game.level;
+        }
+
+        // ============================================
+        // 鱼塘系统
+        // ============================================
+        function showPond() {
+            let html = `
+                <div class="modal-header">
+                    <h2 class="modal-title">🐟 鱼塘</h2>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+                <div class="pond-container">
+                    <div class="pond-title">🌊 我的鱼塘</div>
+                    <div class="pond-grid">
+            `;
+
+            game.pond.forEach((slot, i) => {
+                if (!slot) {
+                    html += `<div class="pond-slot empty" onclick="buyFish(${i})"></div>`;
+                } else if (slot.ready) {
+                    html += `
+                        <div class="pond-slot ready" onclick="harvestFish(${i})">
+                            <span class="fish-emoji">${slot.fishType.icon}</span>
+                        </div>
+                    `;
+                } else {
+                    const remain = slot.readyTime - Date.now();
+                    html += `
+                        <div class="pond-slot" style="cursor:default;">
+                            <span class="fish-emoji" style="opacity:0.5;">${slot.fishType.icon}</span>
+                            <span class="fish-timer">${formatTime(remain)}</span>
+                        </div>
+                    `;
+                }
+            });
+
+            html += `
+                    </div>
+                    <div class="pond-capacity">容量: ${game.pond.filter(s => s !== null).length}/${game.pondCapacity}</div>
+                </div>
+                <div style="text-align:center;margin-top:16px;">
+                    <button class="btn-secondary" onclick="showFishShop()">🛒 购买鱼苗</button>
+                </div>
+            `;
+
+            openModal(html);
+        }
+
+        function showFishShop() {
+            let html = `
+                <div class="modal-header">
+                    <h2 class="modal-title">🛒 鱼苗商店</h2>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+                <p style="margin-bottom:12px;color:var(--text-light);font-size:14px;">
+                    当前小鱼干：🐟 × ${game.fish}
+                </p>
+                <div style="display:flex;flex-direction:column;gap:10px;">
+            `;
+
+            FISH_TYPES.forEach(fish => {
+                html += `
+                    <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border-radius:16px;">
+                        <span style="font-size:40px;">${fish.icon}</span>
+                        <div style="flex:1;">
+                            <div style="font-weight:700;">${fish.name}</div>
+                            <div style="font-size:12px;color:var(--text-light);">
+                                成长${fish.growTime}秒 · 产出${fish.minYield}-${fish.maxYield}🐟
+                                ${fish.escapeRate > 0 ? ' · 逃跑率' + Math.round(fish.escapeRate*100) + '%' : ''}
+                            </div>
+                        </div>
+                        <button class="btn-secondary" onclick="buyFishType('${fish.id}')" 
+                                style="${game.fish < fish.price ? 'opacity:0.4;pointer-events:none;' : ''}">
+                            ${fish.price === 0 ? '免费' : '🐟 ' + fish.price}
+                        </button>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            openModal(html);
+        }
+
+        let selectedPondSlot = null;
+
+        function buyFish(index) {
+            selectedPondSlot = index;
+            showFishShop();
+        }
+
+        function buyFishType(fishId) {
+            const fish = FISH_TYPES.find(f => f.id === fishId);
+            if (game.fish < fish.price) {
+                playSound('error');
+                showToast('小鱼干不够！');
+                return;
+            }
+
+            let slotIndex = selectedPondSlot;
+            if (slotIndex === null || game.pond[slotIndex] !== null) {
+                slotIndex = game.pond.findIndex(s => s === null);
+            }
+
+            if (slotIndex === -1) {
+                playSound('error');
+                showToast('鱼塘满了！');
+                return;
+            }
+
+            game.fish -= fish.price;
+            game.pond[slotIndex] = {
+                fishType: fish,
+                ready: false,
+                readyTime: Date.now() + fish.growTime * 1000,
+                fed: false
+            };
+
+            saveGame();
+            playSound('click');
+            showToast('投放了' + fish.name + '！');
+            selectedPondSlot = null;
+            showPond();
+            renderHome();
+        }
+
+        function harvestFish(index) {
+            const slot = game.pond[index];
+            if (!slot || !slot.ready) return;
+
+            const fish = slot.fishType;
+
+            if (Math.random() < fish.escapeRate) {
+                game.pond[index] = null;
+                saveGame();
+                playSound('error');
+                showToast('哎呀！' + fish.name + '逃跑了！');
+                showPond();
+                renderHome();
+                return;
+            }
+
+            const yield_amount = randInt(fish.minYield, fish.maxYield);
+            game.fish += yield_amount;
+            game.pond[index] = null;
+
+            game.stats.harvestCount++;
+            checkQuest('harvest_count');
+
+            saveGame();
+            playSound('harvest');
+            showToast('收获了' + yield_amount + '🐟！');
+            showPond();
+            renderHome();
+        }
+
+        // ============================================
+        // 旅行系统
+        // ============================================
+        function showTravel() {
+            if (game.isTraveling) {
+                const loc = LOCATIONS.find(l => l.id === game.travelLocation);
+                const food = FOODS.find(f => f.id === game.travelFood);
+                const remain = game.travelEndTime - Date.now();
+
+                openModal(`
+                    <div class="modal-header">
+                        <h2 class="modal-title">✈️ 旅行中</h2>
+                        <button class="modal-close" onclick="closeModal()">&times;</button>
+                    </div>
+                    <div style="text-align:center;padding:20px 0;">
+                        <div style="font-size:80px;margin-bottom:16px;">${loc.icon}</div>
+                        <h3 style="font-size:20px;margin-bottom:8px;">${loc.name}</h3>
+                        <p style="color:var(--text-light);margin-bottom:20px;">${loc.desc}</p>
+                        <div style="background:var(--bg);padding:16px;border-radius:16px;margin-bottom:16px;">
+                            <p style="font-size:14px;color:var(--text-light);">携带食物：${food.icon} ${food.name}</p>
+                            <p style="font-size:14px;color:var(--text-light);margin-top:4px;">剩余时间：${formatTime(Math.max(0, remain))}</p>
+                        </div>
+                        <button class="btn-primary" onclick="speedUpTravel()">🚀 加速回家 (10🐟)</button>
+                    </div>
+                `);
+                return;
+            }
+
+            let html = `
+                <div class="modal-header">
+                    <h2 class="modal-title">✈️ 准备旅行</h2>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+                <p style="margin-bottom:12px;color:var(--text-light);font-size:14px;">选择目的地：</p>
+                <div class="location-grid">
+            `;
+
+            LOCATIONS.forEach(loc => {
+                html += `
+                    <div class="location-card" onclick="selectTravelLocation('${loc.id}')">
+                        <div class="loc-icon">${loc.icon}</div>
+                        <div class="loc-name">${loc.name}</div>
+                        <div class="loc-desc">${loc.desc}</div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            openModal(html);
+        }
+
+        let selectedLocation = null;
+
+        function selectTravelLocation(locId) {
+            selectedLocation = locId;
+            const loc = LOCATIONS.find(l => l.id === locId);
+
+            let html = `
+                <div class="modal-header">
+                    <h2 class="modal-title">🎒 准备背包</h2>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+                <div style="text-align:center;margin-bottom:16px;">
+                    <div style="font-size:48px;margin-bottom:8px;">${loc.icon}</div>
+                    <h3>${loc.name}</h3>
+                </div>
+                <p style="margin-bottom:12px;color:var(--text-light);font-size:14px;">选择食物（决定旅行时间）：</p>
+                <div class="backpack-grid">
+            `;
+
+            FOODS.forEach(food => {
+                const count = game.backpack[food.id] || 0;
+                const canUse = count > 0;
+                html += `
+                    <div class="backpack-slot" 
+                         onclick="${canUse ? `startTravel('${food.id}')` : 'playSound(\'error\')'}"
+                         style="${!canUse ? 'opacity:0.4;cursor:not-allowed;' : ''}">
+                        <span style="font-size:28px;">${food.icon}</span>
+                        <span class="item-name">${food.name}</span>
+                        <span class="item-count">${count}</span>
+                        <span style="font-size:10px;color:var(--text-light);margin-top:2px;">${food.travelTime}秒</span>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            openModal(html);
+        }
+
+        function startTravel(foodId) {
+            const food = FOODS.find(f => f.id === foodId);
+            if (!game.backpack[foodId] || game.backpack[foodId] <= 0) {
+                playSound('error');
+                showToast('没有足够的食物！');
+                return;
+            }
+
+            game.backpack[foodId]--;
+            game.isTraveling = true;
+            game.travelLocation = selectedLocation;
+            game.travelFood = foodId;
+            game.travelEndTime = Date.now() + food.travelTime * 1000;
+
+            saveGame();
+            playSound('travel');
+            showToast(game.catName + ' 出发去旅行了！');
+            closeModal();
+            renderHome();
+        }
+
+        function updateTravelProgress() {
+            const bar = document.getElementById('travel-bar');
+            const timer = document.getElementById('travel-timer');
+            if (!bar || !timer) return;
+
+            const now = Date.now();
+            const food = FOODS.find(f => f.id === game.travelFood);
+            const totalTime = food ? food.travelTime * 1000 : 15000;
+            const remain = game.travelEndTime - now;
+            const elapsed = totalTime - remain;
+            const progress = Math.max(0, Math.min(100, (elapsed / totalTime) * 100));
+
+            bar.style.width = progress + '%';
+            timer.textContent = remain > 0 ? '预计 ' + formatTime(remain) + ' 后回家' : '即将到家...';
+
+            if (remain <= 0) {
+                completeTravel();
+            } else {
+                setTimeout(updateTravelProgress, 1000);
+            }
+        }
+
+        function completeTravel() {
+            game.isTraveling = false;
+            const loc = LOCATIONS.find(l => l.id === game.travelLocation);
+
+            const minigameType = getRandom(MINIGAMES);
+
+            const postcard = {
+                id: Date.now(),
+                location: loc.id,
+                locationName: loc.name,
+                icon: loc.icon,
+                item: getRandom(loc.items),
+                time: new Date().toLocaleDateString(),
+                message: generateMessage(loc.name),
+                minigame: minigameType,
+                minigameScore: 0,
+                rewardTier: 0
+            };
+
+            startMinigame(minigameType, postcard);
+        }
+
+        function generateMessage(locName) {
+            const messages = [
+                `这里的风景太美了，下次还要来！`,
+                `遇到了很多有趣的朋友~`,
+                `吃到了当地特色美食，好好吃！`,
+                `天气很好，心情也很好！`,
+                `发现了一处秘密景点！`,
+                `买了一些特产给你~`
+            ];
+            return getRandom(messages);
+        }
+
+        function speedUpTravel() {
+            if (game.fish < 10) {
+                playSound('error');
+                showToast('小鱼干不够！');
+                return;
+            }
+            game.fish -= 10;
+            game.travelEndTime = Date.now();
+            saveGame();
+            playSound('click');
+            showToast('加速了！');
+            closeModal();
+            completeTravel();
+        }
+
+        // ============================================
+        // 小游戏系统
+        // ============================================
+        function startMinigame(type, postcard) {
+            switch(type) {
+                case 'memory': startMemoryGame(postcard); break;
+                case 'spotdiff': startSpotDiff(postcard); break;
+                case 'rhythm': startRhythmGame(postcard); break;
+                case 'puzzle': startPuzzleGame(postcard); break;
+            }
+        }
+
+        // 记忆翻牌
+        function startMemoryGame(postcard) {
+            const emojis = ['🐱', '🐟', '🌸', '☁️', '🍬', '🌙', '❄️', '✨'];
+            const cards = [...emojis, ...emojis].sort(() => Math.random() - 0.5);
+            let flipped = [];
+            let matched = 0;
+            let score = 0;
+            let combo = 0;
+            let timeLeft = 30;
+            let gameEnded = false;
+
+            let html = `
+                <div class="minigame-container">
+                    <div class="minigame-title">🃏 记忆翻牌</div>
+                    <div class="minigame-subtitle">找到相同的配对！</div>
+                    <div class="minigame-timer">⏱️ ${timeLeft}秒</div>
+                    <div class="minigame-score" id="memory-score">0</div>
+                    <div class="memory-grid" id="memory-grid">
+            `;
+
+            cards.forEach((emoji, i) => {
+                html += `<div class="memory-card" data-index="${i}" data-emoji="${emoji}" onclick="flipCard(this)">?</div>`;
+            });
+
+            html += `
+                    </div>
+                    <div style="margin-top:16px;font-size:14px;color:var(--text-light);">
+                        配对: <span id="memory-matched">0</span>/8
+                    </div>
+                </div>
+            `;
+
+            openModal(html);
+
+            window.flipCard = function(card) {
+                if (gameEnded || card.classList.contains('flipped') || card.classList.contains('matched') || flipped.length >= 2) return;
+
+                card.classList.add('flipped');
+                card.textContent = card.dataset.emoji;
+                flipped.push(card);
+
+                if (flipped.length === 2) {
+                    if (flipped[0].dataset.emoji === flipped[1].dataset.emoji) {
+                        combo++;
+                        const points = 10 + (combo - 1) * 5;
+                        score += points;
+                        matched++;
+
+                        setTimeout(() => {
+                            flipped.forEach(c => {
+                                c.classList.add('matched');
+                                c.classList.remove('flipped');
+                            });
+                            flipped = [];
+
+                            document.getElementById('memory-score').textContent = score;
+                            document.getElementById('memory-matched').textContent = matched;
+
+                            if (combo >= 2) playSound('combo');
+                            else playSound('match');
+
+                            if (matched === 8) {
+                                endMinigame(score, postcard);
+                            }
+                        }, 500);
+                    } else {
+                        combo = 0;
+                        setTimeout(() => {
+                            flipped.forEach(c => {
+                                c.classList.remove('flipped');
+                                c.textContent = '?';
+                            });
+                            flipped = [];
+                            playSound('error');
+                        }, 800);
+                    }
+                }
+            };
+
+            window.minigameInterval = setInterval(() => {
+                timeLeft--;
+                const timerEl = document.querySelector('.minigame-timer');
+                if (timerEl) timerEl.textContent = '⏱️ ' + timeLeft + '秒';
+
+                if (timeLeft <= 0) {
+                    gameEnded = true;
+                    endMinigame(score, postcard);
+                }
+            }, 1000);
+        }
+
+        // 找不同
+        function startSpotDiff(postcard) {
+            const locations = [
+                { x: 20, y: 30 }, { x: 80, y: 50 }, { x: 50, y: 90 }
+            ];
+            let found = 0;
+            let score = 0;
+            let timeLeft = 20;
+            let gameEnded = false;
+
+            let html = `
+                <div class="minigame-container">
+                    <div class="minigame-title">🔍 找不同</div>
+                    <div class="minigame-subtitle">找出两张图的不同之处！</div>
+                    <div class="minigame-timer">⏱️ ${timeLeft}秒</div>
+                    <div class="minigame-score" id="spotdiff-score">0</div>
+                    <div class="spotdiff-container">
+                        <div class="spotdiff-img" id="spotdiff-left" style="font-size:80px;">
+                            ${postcard.icon}
+                            <div style="font-size:12px;color:var(--text-light);margin-top:8px;">原图</div>
+                        </div>
+                        <div class="spotdiff-img" id="spotdiff-right" style="font-size:80px;position:relative;">
+                            ${postcard.icon}
+            `;
+
+            locations.forEach((loc, i) => {
+                html += `<div class="spotdiff-diff" style="top:${loc.y}%;left:${loc.x}%;" onclick="findDiff(this)"></div>`;
+            });
+
+            html += `
+                            <div style="font-size:12px;color:var(--text-light);margin-top:8px;">找不同</div>
+                        </div>
+                    </div>
+                    <div style="margin-top:16px;font-size:14px;color:var(--text-light);">
+                        找到: <span id="spotdiff-found">0</span>/3
+                    </div>
+                </div>
+            `;
+
+            openModal(html);
+
+            window.findDiff = function(diff) {
+                if (gameEnded || diff.classList.contains('found')) return;
+
+                diff.classList.add('found');
+                found++;
+                score += 30;
+
+                document.getElementById('spotdiff-score').textContent = score;
+                document.getElementById('spotdiff-found').textContent = found;
+                playSound('match');
+
+                if (found === 3) {
+                    score += timeLeft * 2;
+                    gameEnded = true;
+                    endMinigame(score, postcard);
+                }
+            };
+
+            window.minigameInterval = setInterval(() => {
+                timeLeft--;
+                const timerEl = document.querySelector('.minigame-timer');
+                if (timerEl) timerEl.textContent = '⏱️ ' + timeLeft + '秒';
+
+                if (timeLeft <= 0) {
+                    gameEnded = true;
+                    endMinigame(score, postcard);
+                }
+            }, 1000);
+        }
+
+        // 节奏点击
+        function startRhythmGame(postcard) {
+            let score = 0;
+            let combo = 0;
+            let timeLeft = 25;
+            let gameEnded = false;
+            let notesHit = 0;
+            let totalNotes = 0;
+
+            let html = `
+                <div class="minigame-container">
+                    <div class="minigame-title">🎵 节奏点击</div>
+                    <div class="minigame-subtitle">音符到达圆圈时点击！</div>
+                    <div class="minigame-timer">⏱️ ${timeLeft}秒</div>
+                    <div class="minigame-score" id="rhythm-score">0</div>
+                    <div style="font-size:14px;color:var(--text-light);margin-bottom:8px;">
+                        连击: <span id="rhythm-combo">0</span>
+                    </div>
+                    <div class="rhythm-game" id="rhythm-game" onclick="hitRhythm()">
+                        <div class="rhythm-lane" id="rhythm-lane">🎯</div>
+                    </div>
+                </div>
+            `;
+
+            openModal(html);
+
+            const gameEl = document.getElementById('rhythm-game');
+            const laneEl = document.getElementById('rhythm-lane');
+
+            function spawnNote() {
+                if (gameEnded) return;
+
+                totalNotes++;
+                const note = document.createElement('div');
+                note.className = 'rhythm-note';
+                note.textContent = ['🎵', '🎶', '⭐', '💫'][Math.floor(Math.random() * 4)];
+                note.style.animationDuration = '2s';
+                gameEl.appendChild(note);
+
+                setTimeout(() => {
+                    if (note.parentNode) {
+                        note.remove();
+                        combo = 0;
+                        document.getElementById('rhythm-combo').textContent = combo;
+                        playSound('rhythm-miss');
+                    }
+                }, 2000);
+            }
+
+            window.hitRhythm = function() {
+                if (gameEnded) return;
+
+                const notes = document.querySelectorAll('.rhythm-note');
+                let hit = false;
+
+                notes.forEach(note => {
+                    const rect = note.getBoundingClientRect();
+                    const laneRect = laneEl.getBoundingClientRect();
+                    const distance = Math.abs(rect.top - laneRect.top);
+
+                    if (distance < 60) {
+                        hit = true;
+                        notesHit++;
+                        combo++;
+                        const points = 10 + Math.min(combo, 10) * 2;
+                        score += points;
+
+                        note.remove();
+
+                        const hitEffect = document.createElement('div');
+                        hitEffect.className = 'rhythm-hit';
+                        hitEffect.textContent = combo >= 5 ? 'PERFECT!' : combo >= 3 ? 'GREAT!' : 'GOOD!';
+                        hitEffect.style.color = combo >= 5 ? '#FFD93D' : combo >= 3 ? '#6ECCAF' : '#fff';
+                        hitEffect.style.left = '50%';
+                        hitEffect.style.top = '60%';
+                        hitEffect.style.transform = 'translateX(-50%)';
+                        gameEl.appendChild(hitEffect);
+                        setTimeout(() => hitEffect.remove(), 800);
+
+                        document.getElementById('rhythm-score').textContent = score;
+                        document.getElementById('rhythm-combo').textContent = combo;
+
+                        if (combo >= 5) playSound('combo');
+                        else playSound('rhythm-hit');
+
+                        laneEl.classList.add('active');
+                        setTimeout(() => laneEl.classList.remove('active'), 200);
+                    }
+                });
+
+                if (!hit) {
+                    combo = 0;
+                    document.getElementById('rhythm-combo').textContent = combo;
+                    playSound('rhythm-miss');
+                }
+            };
+
+            window.minigameInterval = setInterval(spawnNote, 1200);
+
+            window.minigameTimeout = setTimeout(() => {
+                gameEnded = true;
+                clearInterval(window.minigameInterval);
+                endMinigame(score, postcard);
+            }, 25000);
+        }
+
+        // 拼图
+        function startPuzzleGame(postcard) {
+            const correctOrder = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+            let currentOrder = [...correctOrder].sort(() => Math.random() - 0.5);
+            while (JSON.stringify(currentOrder) === JSON.stringify(correctOrder)) {
+                currentOrder = [...correctOrder].sort(() => Math.random() - 0.5);
+            }
+
+            let selectedIndex = null;
+            let moves = 0;
+            let startTime = Date.now();
+            let gameEnded = false;
+
+            const puzzleEmojis = ['🌅', '🏔️', '🌊', '🌸', '🌲', '☁️', '🌙', '✨', '🍃'];
+
+            let html = `
+                <div class="minigame-container">
+                    <div class="minigame-title">🧩 拼图</div>
+                    <div class="minigame-subtitle">点击两个方块交换位置，还原图案！</div>
+                    <div class="minigame-score" id="puzzle-moves">步数: 0</div>
+                    <div class="puzzle-grid" id="puzzle-grid">
+            `;
+
+            currentOrder.forEach((pos, i) => {
+                html += `<div class="puzzle-piece" data-index="${i}" data-correct="${pos}" onclick="swapPuzzle(${i})">${puzzleEmojis[pos]}</div>`;
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+
+            openModal(html);
+
+            window.swapPuzzle = function(index) {
+                if (gameEnded) return;
+
+                const pieces = document.querySelectorAll('.puzzle-piece');
+
+                if (selectedIndex === null) {
+                    selectedIndex = index;
+                    pieces[index].classList.add('selected');
+                    playSound('click');
+                } else if (selectedIndex === index) {
+                    pieces[index].classList.remove('selected');
+                    selectedIndex = null;
+                } else {
+                    const temp = currentOrder[selectedIndex];
+                    currentOrder[selectedIndex] = currentOrder[index];
+                    currentOrder[index] = temp;
+
+                    pieces[selectedIndex].classList.remove('selected');
+                    pieces[selectedIndex].textContent = puzzleEmojis[currentOrder[selectedIndex]];
+                    pieces[selectedIndex].dataset.correct = currentOrder[selectedIndex];
+                    pieces[index].textContent = puzzleEmojis[currentOrder[index]];
+                    pieces[index].dataset.correct = currentOrder[index];
+
+                    selectedIndex = null;
+                    moves++;
+                    document.getElementById('puzzle-moves').textContent = '步数: ' + moves;
+                    playSound('click');
+
+                    const isComplete = currentOrder.every((val, idx) => val === idx);
+                    if (isComplete) {
+                        gameEnded = true;
+                        const timeUsed = (Date.now() - startTime) / 1000;
+                        const score = Math.max(100 - moves * 2 - Math.floor(timeUsed), 20);
+
+                        pieces.forEach(p => p.classList.add('correct'));
+                        playSound('combo');
+
+                        setTimeout(() => endMinigame(score, postcard), 500);
+                    }
+                }
+            };
+        }
+
+        // 结束小游戏
+        function endMinigame(score, postcard) {
+            clearInterval(window.minigameInterval);
+            clearTimeout(window.minigameTimeout);
+            window.minigameInterval = null;
+            window.minigameTimeout = null;
+
+            postcard.minigameScore = score;
+
+            let tier = 1;
+            let stars = '⭐';
+            if (score >= 91) { tier = 4; stars = '⭐⭐⭐⭐'; }
+            else if (score >= 61) { tier = 3; stars = '⭐⭐⭐'; }
+            else if (score >= 31) { tier = 2; stars = '⭐⭐'; }
+
+            postcard.rewardTier = tier;
+
+            const loc = LOCATIONS.find(l => l.id === postcard.location);
+            const baseFish = 3 + tier * 2;
+            const bonusFish = Math.floor(score / 20);
+            const totalFish = baseFish + bonusFish;
+
+            game.fish += totalFish;
+            game.postcards.unshift(postcard);
+
+            const souvenir = postcard.item;
+            game.souvenirs[souvenir] = (game.souvenirs[souvenir] || 0) + 1;
+
+            game.exp += 5 + tier * 3;
+            if (game.exp >= game.level * 20) {
+                game.level++;
+                game.exp = 0;
+                showToast('升级了！Lv.' + game.level);
+            }
+
+            game.stats.travelCount++;
+            checkQuest('travel_count');
+            if (tier === 4) {
+                game.stats.perfectMinigame++;
+                checkQuest('perfect_minigame');
+            }
+
+            if (game.stats.travelCount === 1) checkAchievement('first_step');
+            const visitedLocations = [...new Set(game.postcards.map(p => p.location))];
+            if (visitedLocations.length === 6) checkAchievement('traveler');
+            if (Object.keys(game.souvenirs).length >= 18) checkAchievement('collector');
+            if (game.fish >= 500) checkAchievement('millionaire');
+            if (game.level >= 10) checkAchievement('master');
+
+            saveGame();
+            playSound('return');
+
+            generateDiary(postcard);
+
+            let html = `
+                <div class="reward-container">
+                    <div class="reward-stars">${stars}</div>
+                    <h3 style="font-size:22px;margin-bottom:8px;">小游戏得分: ${score}</h3>
+                    <p style="color:var(--text-light);margin-bottom:20px;">${postcard.locationName} 旅行完成！</p>
+                    <div class="reward-items">
+                        <div class="reward-item">
+                            <span class="reward-icon">🐟</span>
+                            <span>+${totalFish} 小鱼干</span>
+                        </div>
+                        <div class="reward-item">
+                            <span class="reward-icon">✨</span>
+                            <span>${souvenir}</span>
+                        </div>
+                        <div class="reward-item">
+                            <span class="reward-icon">📮</span>
+                            <span>1 张明信片</span>
+                        </div>
+                    </div>
+                    <button class="btn-primary" style="margin-top:20px;" onclick="closeModal();renderHome();">太棒了！</button>
+                </div>
+            `;
+
+            openModal(html);
+        }
+
+        // ============================================
+        // 日记系统
+        // ============================================
+        function generateDiary(postcard) {
+            const loc = LOCATIONS.find(l => l.id === postcard.location);
+            const personality = game.personality;
+
+            let content = '';
+            if (personality.brave > 60) {
+                content = `今天去了${postcard.locationName}，那里好刺激！我爬上了最高的地方，风景超棒！虽然有点害怕，但是很值得！`;
+            } else if (personality.greedy > 60) {
+                content = `今天去了${postcard.locationName}，那里的食物太好吃了！我吃了好多，还打包了${postcard.item}回来~`;
+            } else if (personality.lively > 60) {
+                content = `今天去了${postcard.locationName}，遇到了好多新朋友！我们一起玩耍，好开心！`;
+            } else if (personality.lazy > 60) {
+                content = `今天去了${postcard.locationName}，找了个舒服的地方晒太阳，悠闲地度过了一天~`;
+            } else {
+                content = `今天去了${postcard.locationName}，${postcard.message} 给你带了${postcard.item}~`;
+            }
+
+            const diary = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString(),
+                location: postcard.locationName,
+                icon: postcard.icon,
+                content: content,
+                replied: false,
+                choices: [
+                    { text: '❤️ 真勇敢！', effect: { brave: 5, greedy: -2 } },
+                    { text: '🍖 多吃点好吃的', effect: { greedy: 5, brave: -2 } },
+                    { text: '🎮 下次一起去玩', effect: { lively: 5, lazy: -2 } },
+                    { text: '💤 注意休息哦', effect: { lazy: 5, lively: -2 } }
+                ]
+            };
+
+            game.diaries.unshift(diary);
+            game.lastDiaryDate = Date.now();
+            saveGame();
+        }
+
+        function showDiary() {
+            let html = `
+                <div class="modal-header">
+                    <h2 class="modal-title">📖 日记</h2>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+            `;
+
+            if (game.diaries.length === 0) {
+                html += `
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <p>还没有日记</p>
+                        <p style="font-size:12px;margin-top:8px;">让小猫去旅行，会写回日记哦~</p>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div style="margin-bottom:20px;padding:16px;background:var(--bg);border-radius:16px;">
+                        <div style="font-size:14px;font-weight:700;margin-bottom:12px;">🐱 ${game.catName} 的性格</div>
+                        <div class="diary-stats">
+                            <div class="diary-stat">
+                                <div class="stat-label">勇敢</div>
+                                <div class="stat-bar"><div class="stat-fill" style="width:${game.personality.brave}%;background:#FF6B6B;"></div></div>
+                                <div class="stat-value">${game.personality.brave}</div>
+                            </div>
+                            <div class="diary-stat">
+                                <div class="stat-label">贪吃</div>
+                                <div class="stat-bar"><div class="stat-fill" style="width:${game.personality.greedy}%;background:#FFA502;"></div></div>
+                                <div class="stat-value">${game.personality.greedy}</div>
+                            </div>
+                            <div class="diary-stat">
+                                <div class="stat-label">活泼</div>
+                                <div class="stat-bar"><div class="stat-fill" style="width:${game.personality.lively}%;background:#6ECCAF;"></div></div>
+                                <div class="stat-value">${game.personality.lively}</div>
+                            </div>
+                            <div class="diary-stat">
+                                <div class="stat-label">慵懒</div>
+                                <div class="stat-bar"><div class="stat-fill" style="width:${game.personality.lazy}%;background:#74B9FF;"></div></div>
+                                <div class="stat-value">${game.personality.lazy}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                game.diaries.forEach(diary => {
+                    html += `
+                        <div class="diary-entry">
+                            <div class="diary-date">${diary.date} · ${diary.location} ${diary.icon}</div>
+                            <div class="diary-content">${diary.content}</div>
+                            ${!diary.replied ? `
+                                <div class="diary-choices">
+                                    ${diary.choices.map((choice, i) => `
+                                        <div class="diary-choice" onclick="replyDiary(${diary.id}, ${i})">${choice.text}</div>
+                                    `).join('')}
+                                </div>
+                            ` : `
+                                <div style="font-size:13px;color:var(--primary);margin-top:8px;">✓ 已回复</div>
+                            `}
+                        </div>
+                    `;
+                });
+            }
+
+            openModal(html);
+        }
+
+        function replyDiary(diaryId, choiceIndex) {
+            const diary = game.diaries.find(d => d.id === diaryId);
+            if (!diary || diary.replied) return;
+
+            const choice = diary.choices[choiceIndex];
+
+            for (let key in choice.effect) {
+                game.personality[key] = Math.max(10, Math.min(90, game.personality[key] + choice.effect[key]));
+            }
+
+            diary.replied = true;
+            saveGame();
+            playSound('click');
+            showToast('回复已保存！');
+            showDiary();
+        }
+
+        // ============================================
+        // 任务系统
+        // ============================================
+        function showQuests() {
+            let html = `
+                <div class="modal-header">
+                    <h2 class="modal-title">🎯 任务</h2>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+            `;
+
+            QUESTS.forEach(q => {
+                const quest = game.quests[q.id];
+                if (!quest) return;
+
+                const progress = quest.progress || 0;
+                const percent = Math.min(100, (progress / q.target) * 100);
+
+                html += `
+                    <div class="quest-item ${quest.completed ? 'completed' : ''}">
+                        <div class="quest-icon">${quest.completed ? '✅' : '📋'}</div>
+                        <div class="quest-info">
+                            <div class="quest-title">${q.title}</div>
+                            <div class="quest-desc">${q.desc}</div>
+                            <div style="margin-top:6px;">
+                                <div style="height:4px;background:#E0E0E0;border-radius:2px;overflow:hidden;">
+                                    <div style="height:100%;width:${percent}%;background:${quest.completed ? 'var(--primary)' : 'var(--accent)'};border-radius:2px;transition:width 0.5s;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div class="quest-progress">${progress}/${q.target}</div>
+                            <div class="quest-reward">+${q.reward}🐟</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            openModal(html);
+        }
+
+        // ============================================
+        // 背包系统
+        // ============================================
+        function showBackpack() {
+            let html = `
+                <div class="modal-header">
+                    <h2 class="modal-title">🎒 背包</h2>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+                <p style="margin-bottom:12px;color:var(--text-light);font-size:14px;">食物：</p>
+                <div class="backpack-grid">
+            `;
+
+            FOODS.forEach(food => {
+                const count = game.backpack[food.id] || 0;
+                html += `
+                    <div class="backpack-slot">
+                        <span>${food.icon}</span>
+                        <span class="item-name">${food.name}</span>
+                        <span class="item-count">${count}</span>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            html += `
+                <div style="margin-top:20px;text-align:center;">
+                    <button class="btn-primary" onclick="showShop()">🏪 去商店购买</button>
+                </div>
+            `;
+
+            openModal(html);
+        }
+
+        function showShop() {
+            let html = `
+                <div class="modal-header">
+                    <h2 class="modal-title">🏪 商店</h2>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+                <p style="margin-bottom:12px;color:var(--text-light);font-size:14px;">
+                    当前小鱼干：🐟 × ${game.fish}
+                </p>
+                <div style="display:flex;flex-direction:column;gap:10px;">
+            `;
+
+            FOODS.forEach(food => {
+                if (food.price === 0) return;
+                html += `
+                    <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border-radius:16px;">
+                        <span style="font-size:32px;">${food.icon}</span>
+                        <div style="flex:1;">
+                            <div style="font-weight:700;">${food.name}</div>
+                            <div style="font-size:12px;color:var(--text-light);">${food.desc} · 旅行${food.travelTime}秒</div>
+                        </div>
+                        <button class="btn-secondary" onclick="buyFood('${food.id}', ${food.price})" 
+                                style="${game.fish < food.price ? 'opacity:0.4;pointer-events:none;' : ''}">
+                            🐟 ${food.price}
+                        </button>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            openModal(html);
+        }
+
+        function buyFood(foodId, price) {
+            if (game.fish < price) {
+                playSound('error');
+                showToast('小鱼干不够！');
+                return;
+            }
+            game.fish -= price;
+            game.backpack[foodId] = (game.backpack[foodId] || 0) + 1;
+            saveGame();
+            playSound('harvest');
+            showToast('购买成功！');
+            showShop();
+            renderHome();
+        }
+
+        // ============================================
+        // 明信片系统
+        // ============================================
+        function showPostcards() {
+            let html = `
+                <div class="modal-header">
+                    <h2 class="modal-title">📮 明信片</h2>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+            `;
+
+            if (game.postcards.length === 0) {
+                html += `
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <p>还没有明信片</p>
+                        <p style="font-size:12px;margin-top:8px;">让小猫去旅行，会寄回明信片哦~</p>
+                    </div>
+                `;
+            } else {
+                game.postcards.forEach(pc => {
+                    const stars = pc.rewardTier >= 4 ? '⭐⭐⭐⭐' : pc.rewardTier >= 3 ? '⭐⭐⭐' : pc.rewardTier >= 2 ? '⭐⭐' : '⭐';
+                    html += `
+                        <div class="postcard-item" onclick="viewPostcard(${pc.id})">
+                            <div class="postcard-img">${pc.icon}</div>
+                            <div class="postcard-info">
+                                <h4>${pc.locationName} ${stars}</h4>
+                                <p>${pc.time} · 带回 ${pc.item}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            openModal(html);
+        }
+
+        function viewPostcard(id) {
+            const pc = game.postcards.find(p => p.id === id);
+            if (!pc) return;
+
+            const stars = pc.rewardTier >= 4 ? '⭐⭐⭐⭐' : pc.rewardTier >= 3 ? '⭐⭐⭐' : pc.rewardTier >= 2 ? '⭐⭐' : '⭐';
+
+            openModal(`
+                <div style="text-align:center;padding:20px 0;">
+                    <div style="font-size:80px;margin-bottom:16px;">${pc.icon}</div>
+                    <h3 style="font-size:22px;margin-bottom:8px;">${pc.locationName}</h3>
+                    <div style="font-size:24px;margin-bottom:8px;">${stars}</div>
+                    <p style="color:var(--text-light);margin-bottom:20px;">${pc.time} · 小游戏得分: ${pc.minigameScore}</p>
+                    <div style="background:linear-gradient(135deg,var(--bg),white);padding:20px;border-radius:20px;margin-bottom:16px;text-align:left;">
+                        <p style="font-size:15px;line-height:1.8;color:var(--text);">
+                            亲爱的主人：<br><br>
+                            ${pc.message}<br><br>
+                            这里风景如画，我拍了很多照片！<br>
+                            给你带了 <strong>${pc.item}</strong> 作为礼物~<br><br>
+                            —— ${game.catName}
+                        </p>
+                    </div>
+                    <button class="btn-secondary" onclick="showPostcards()">返回列表</button>
+                </div>
+            `);
+        }
+
+        // ============================================
+        // 收藏系统
+        // ============================================
+        function showCollection() {
+            const totalSouvenirs = Object.values(game.souvenirs).reduce((a, b) => a + b, 0);
+            const allItems = [...new Set(LOCATIONS.flatMap(l => l.items))];
+
+            let html = `
+                <div class="modal-header">
+                    <h2 class="modal-title">🏆 收藏</h2>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+                <div style="text-align:center;margin-bottom:20px;">
+                    <div style="font-size:48px;margin-bottom:8px;">📦</div>
+                    <p style="color:var(--text-light);">已收集 ${totalSouvenirs} 个特产</p>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+            `;
+
+            allItems.forEach(item => {
+                const count = game.souvenirs[item] || 0;
+                html += `
+                    <div style="background:${count > 0 ? 'var(--primary-light)' : 'var(--bg)'};
+                                padding:12px 16px;border-radius:16px;text-align:center;min-width:80px;">
+                        <div style="font-size:24px;margin-bottom:4px;">${count > 0 ? '✨' : '❓'}</div>
+                        <div style="font-size:12px;font-weight:500;">${item}</div>
+                        ${count > 0 ? `<div style="font-size:11px;color:var(--primary-dark);margin-top:2px;">×${count}</div>` : ''}
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            openModal(html);
+        }
+
+        // ============================================
+        // 好友系统
+        // ============================================
+        function spawnFriend() {
+            if (game.currentFriend) return;
+            if (Math.random() > 0.4) return;
+
+            game.currentFriend = getRandom(FRIENDS);
+            saveGame();
+            playSound('friend');
+            renderHome();
+        }
+
+        function receiveFriendGift() {
+            if (!game.currentFriend) return;
+
+            const friend = game.currentFriend;
+
+            if (friend.gift === '三叶草') {
+                game.fish += friend.giftAmount;
+                showToast(friend.name + ' 送了 ' + friend.giftAmount + '🐟！');
+            } else {
+                game.souvenirs[friend.gift] = (game.souvenirs[friend.gift] || 0) + friend.giftAmount;
+                showToast(friend.name + ' 送了 ' + friend.giftAmount + ' 个' + friend.gift + '！');
+            }
+
+            game.currentFriend = null;
+            game.stats.friendCount++;
+            checkQuest('friend_count');
+
+            saveGame();
+            playSound('harvest');
+            renderHome();
+        }
+
+        // ============================================
+        // 家具商店
+        // ============================================
+        function showFurnitureShop() {
+            let html = `
+                <div class="modal-header">
+                    <h2 class="modal-title">🏠 装饰商店</h2>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+                <p style="margin-bottom:12px;color:var(--text-light);font-size:14px;">
+                    当前小鱼干：🐟 × ${game.fish}
+                </p>
+
+                <div class="settings-section">
+                    <h3>家具套装</h3>
+            `;
+
+            FURNITURE_SETS.forEach(set => {
+                const owned = game.furniture.set === set.id;
+                html += `
+                    <div class="setting-item">
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span style="font-size:28px;">${set.icon}</span>
+                            <div>
+                                <div style="font-weight:500;">${set.name}</div>
+                                <div style="font-size:12px;color:var(--text-light);">
+                                    ${set.bed} ${set.window} ${set.table} ${set.closet}
+                                </div>
+                            </div>
+                        </div>
+                        ${owned ? 
+                            '<span style="color:var(--primary);font-weight:700;">✓ 使用中</span>' :
+                            `<button class="btn-secondary" onclick="buyFurnitureSet('${set.id}', ${set.price})"
+                                    style="${game.fish < set.price ? 'opacity:0.4;pointer-events:none;' : ''}">
+                                ${set.price === 0 ? '免费' : '🐟 ' + set.price}
+                            </button>`
+                        }
+                    </div>
+                `;
+            });
+
+            html += `
+                </div>
+                <div class="settings-section">
+                    <h3>壁纸</h3>
+            `;
+
+            WALLPAPERS.forEach(wp => {
+                const owned = game.furniture.wallpaper === wp.id;
+                html += `
+                    <div class="setting-item">
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div style="width:32px;height:32px;border-radius:8px;background:var(--${wp.color === 'default' ? 'primary-light' : wp.color});"></div>
+                            <span style="font-weight:500;">${wp.name}</span>
+                        </div>
+                        ${owned ? 
+                            '<span style="color:var(--primary);font-weight:700;">✓ 使用中</span>' :
+                            `<button class="btn-secondary" onclick="buyWallpaper('${wp.id}', ${wp.price})"
+                                    style="${game.fish < wp.price ? 'opacity:0.4;pointer-events:none;' : ''}">
+                                ${wp.price === 0 ? '免费' : '🐟 ' + wp.price}
+                            </button>`
+                        }
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            openModal(html);
+        }
+
+        function buyFurnitureSet(setId, price) {
+            if (game.fish < price) {
+                playSound('error');
+                showToast('小鱼干不够！');
+                return;
+            }
+            game.fish -= price;
+            game.furniture.set = setId;
+            game.stats.furnitureCount++;
+            checkQuest('furniture_count');
+
+            saveGame();
+            playSound('harvest');
+            showToast('购买成功！');
+            showFurnitureShop();
+            renderHome();
+        }
+
+        function buyWallpaper(wpId, price) {
+            if (game.fish < price) {
+                playSound('error');
+                showToast('小鱼干不够！');
+                return;
+            }
+            game.fish -= price;
+            game.furniture.wallpaper = wpId;
+            saveGame();
+            playSound('harvest');
+            showToast('购买成功！');
+            showFurnitureShop();
+            renderHome();
+        }
+
+        // ============================================
+        // 设置
+        // ============================================
+        function showSettings() {
+            openModal(`
+                <div class="modal-header">
+                    <h2 class="modal-title">⚙️ 设置</h2>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+
+                <div class="settings-section">
+                    <h3>猫咪信息</h3>
+                    <div style="margin-bottom:16px;">
+                        <label style="display:block;font-size:13px;color:var(--text-light);margin-bottom:6px;">猫咪名字</label>
+                        <input type="text" class="input-field" id="cat-name-input" value="${game.catName}" 
+                               placeholder="给你的猫咪起个名字" maxlength="8">
+                    </div>
+                    <button class="btn-primary" style="width:100%;" onclick="saveCatName()">保存名字</button>
+                </div>
+
+                <div class="settings-section">
+                    <h3>游戏设置</h3>
+                    <div class="setting-item">
+                        <span>音效</span>
+                        <div class="toggle-switch ${game.soundEnabled ? 'active' : ''}" onclick="toggleSound()"></div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>数据</h3>
+                    <div style="display:flex;gap:10px;">
+                        <button class="btn-secondary" style="flex:1;" onclick="exportSave()">📤 导出存档</button>
+                        <button class="btn-secondary" style="flex:1;" onclick="importSave()">📥 导入存档</button>
+                    </div>
+                    <button class="btn-secondary" style="width:100%;margin-top:10px;color:#FF6B6B;border-color:#FF6B6B;" 
+                            onclick="resetGame()">🗑️ 重置游戏</button>
+                </div>
+
+                <div style="text-align:center;margin-top:20px;padding-top:20px;border-top:1px solid var(--border);">
+                    <p style="font-size:12px;color:var(--text-light);">咪咪的旅行日记 v2.0</p>
+                    <p style="font-size:11px;color:var(--text-light);margin-top:4px;">新媒体作业 Demo</p>
+                </div>
+            `);
+        }
+
+        function saveCatName() {
+            const name = document.getElementById('cat-name-input').value.trim();
+            if (name) {
+                game.catName = name;
+                saveGame();
+                playSound('click');
+                showToast('名字已保存！');
+                renderHome();
+            }
+        }
+
+        function toggleSound() {
+            game.soundEnabled = !game.soundEnabled;
+            saveGame();
+            showToast(game.soundEnabled ? '音效已开启' : '音效已关闭');
+            showSettings();
+        }
+
+        function exportSave() {
+            const data = btoa(JSON.stringify(game));
+            navigator.clipboard.writeText(data).then(() => {
+                showToast('存档已复制到剪贴板！');
+            }).catch(() => {
+                showToast(data.substring(0, 30) + '...');
+            });
+        }
+
+        function importSave() {
+            const data = prompt('请粘贴存档代码：');
+            if (data) {
+                try {
+                    const parsed = JSON.parse(atob(data));
+                    game = parsed;
+                    initQuests();
+                    initAchievements();
+                    saveGame();
+                    showToast('存档导入成功！');
+                    renderHome();
+                } catch (e) {
+                    showToast('存档代码无效！');
+                }
+            }
+        }
+
+        function resetGame() {
+            if (confirm('确定要重置所有进度吗？此操作不可撤销！')) {
+                localStorage.removeItem('catTravelGame_v2');
+                location.reload();
+            }
+        }
+
+        // ============================================
+        // 初始化
+        // ============================================
+        function init() {
+            AudioSys.init();
+            loadGame();
+
+            if (game.firstVisit) {
+                game.firstVisit = false;
+                saveGame();
+                setTimeout(() => {
+                    showToast('欢迎来到咪咪的旅行日记 v2.0！');
+                }, 500);
+            }
+
+            renderHome();
+
+            setInterval(() => {
+                let changed = false;
+
+                game.pond.forEach(slot => {
+                    if (slot && !slot.ready && Date.now() >= slot.readyTime) {
+                        slot.ready = true;
+                        changed = true;
+                    }
+                });
+
+                if (game.isTraveling && Date.now() >= game.travelEndTime) {
+                    completeTravel();
+                    changed = true;
+                }
+
+                if (!game.isTraveling && !game.currentFriend && Math.random() < 0.02) {
+                    spawnFriend();
+                    changed = true;
+                }
+
+                if (changed) saveGame();
+            }, 1000);
+        }
+
+        init();
+
+        document.addEventListener('click', () => {
+            if (AudioSys.ctx && AudioSys.ctx.state === 'suspended') {
+                AudioSys.ctx.resume();
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
